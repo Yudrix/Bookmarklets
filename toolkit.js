@@ -1,8 +1,14 @@
 (function(){
+
+    let fontLink = document.createElement('link');
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap';
+    fontLink.rel = 'stylesheet';
+    document.head,appendChild(fontLink);
+
     let menu = document.createElement('div');
     menu.innerHTML=`
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+   
     #bookmarkletmenu{
         position:fixed;
         top:20px;
@@ -70,14 +76,30 @@
     Toolkit
     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMsQKIOVtgGOXbpESHzwhMiMyQ9Dfnh0WT-g&s">
     <.h1>   
-    <button id="TBD">TBD</button>
+    <button id="Darkmode">Invert mode</button>
+    <button id="menuclosebutton">X</button>
     </div>
-    <button id="menuclosebutton">X</button> 
+     
         
 
     `;
     document.body.appendChild(menu);
     document.getElementById('menuclosebutton').onclick=function(){
-        menu.remove();
+        menu.remove(); };
+    document.getElementById('Darkmode').onclick=function(){
+         
+           
+        let all = document.getElementsByTagName('*');
+        for (let i = 0; i < all.length; i++)
+        {if(typeof all[i].style !== 'undefined'){all[i].style.filter = "invert(1)";}}
+        
+        let elems = document.querySelectorAll("img,video,a");
+        for (let j = 0; j < elems.length; j++)
+        {if (elems[j].style){elems[j].style.filter = "invert(0)";}}
+        
+    
+
+        
     };
+    
 })();

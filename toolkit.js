@@ -1,7 +1,7 @@
 (function(){
 
     let fontLink = document.createElement('link');
-    fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap';
+    fontLink.href = 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap';
     fontLink.rel = 'stylesheet';
     document.head.appendChild(fontLink);
 
@@ -13,37 +13,47 @@
         position:fixed;
         top:20px;
         display:flex;
-        font-family:'Roboto', sans-serif;
+        font-family:'Montserrat', sans-serif;
         right:20px;
-        padding:5px;
-        background-color:rgb(46, 44, 44);
-        border: 2px solid rgb(255, 234, 0);
-        border-radius:10px;
+        padding:20px;
+        background-color: #1c1c1e;
+        border: 1px solid #ffe537;
+        border-radius:20px;
         z-index:9999;
         flex-direction:column;
-        gap:10px;
-        box-shadow: 2px 2px 15px rgba(0,0,0,0.3);
+        gap:15px;
+        box-shadow: 0px 8px 24px rgba(0,0,0,0.3);
+        animation: fadeIn 0.3 ease-in-out;
+        width:300px;
     }
     #bookmarkletmenu h1{
         display:flex;
-        font-family:'Roboto', sans-serif;
-        font-size 20px;
+        font-family:'Montserrat', sans-serif;
+        font-size 24px;
+        font-weight: 700;
         align-items:center;
+        justify-content:center;
         gap:10px;
-        color:rgb(255,255,255);
+        color: #ffffff;
         margin:0;
+        
+        
         }
     #bookmarkletmenu h1 img{
-        width:24px;
-        height:24px;}
+        width:30px;
+        height:30px;}
+
     #bookmarkletmenu button{
         cursor:pointer;
-        padding:8px 12px;
+        padding:10px 15px;
         border:none;
-        background:#0078d7;
-        color:white;
+        box-shadow: 0 0 16px #ffe537;
+        background: #292929;
+        color: #ffe537;
         font-size:14px;
-        border-radius:5px;
+        font-weight:400;
+        font-family:'Montserrat', sans-serif;
+        border-radius:10px;
         transition: background 0.3s ease, transform 0.2 ease;
         
     
@@ -51,35 +61,49 @@
     #bookmarkletmenu button:hover{
         background:#005a9e; 
         transform:scale(1.05);
+        box-shadow: 0 0 24px #ffe537;
         }
     #menuclosebutton{
-        background:red;
+        background: #ff3b30;
         color:white;
         font-size:12px;
         font-weight:bold;
-        width:30px;
+        width:50px;
         height:30px;
         border-radius:50%;
         display:flex;
         align-items:center;
         justify-content:center;
         margin-left:auto;
+        padding:10px 15px;
         transition: background 0.3s ease, transform 0.2 ease;
         cursor:pointer;
         }  
     #menuclosebutton:hover{
         background:darkred;
         transform: scale(1.1);} 
+    #bookmarkletmenu p{
+        font-size:12px;
+        text-align:center;
+        font-family:'Montserrat', sans-serif;
+        font-weight:400;
+        
+    @keyframes fadeIn{
+    from {opacity: 0; transform: scale(0.8);}
+    to {opacity: 1; transform: scale(1);}}
 </style>
     <div id="bookmarkletmenu">
     <h1>
     Toolkit
-    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMsQKIOVtgGOXbpESHzwhMiMyQ9Dfnh0WT-g&s">
-    <.h1> 
+    <img src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/9a0afe8d03290fbcd2c84c4d3ac04ab6ce8ac212_jslogo.png">
+    </h1> 
     <button id="AI">Ask AI</button>  
     <button id="Darkmode">Invert mode</button>
     <button id="menuclosebutton">Close</button>
+    <p>Made with ❤️ by <a href="https://github.com/Yudrix/Bookmarklets" target="_blank" style="color:#ffe537; text-decoration:none;">Yudrix</a></p>
+    <p>ToolkitJS is a collection of bookmarklets to enhance your browsing experience. Without the risk of your privacy.</p>
     </div>
+    
      
         
 
@@ -88,11 +112,27 @@
 
     document.getElementById('menuclosebutton').onclick=function(){
         menu.remove(); };
+    document.getElementById('menuclosebutton').style='';
 
     document.getElementById('AI').onclick = async function(){
         let selectedText = window.getSelection().toString().trim();
         if (!selectedText) {
             alert("Please select some text to ask the AI.");
+            return;
+        }
+        let additionalText = prompt("Please provide any additional contextto your question:", "");
+        if (additionalText){
+            selectedText += " " + additionalText.trim();
+        }
+
+        const wordlimit = 500;
+        let words = selectedText.split(/\s+/).length;
+        if (words.length > wordlimit) {
+            selectedText = words.slice(0, wordLimit).join(" ");
+            alert(`Input is too long. Only the first ${wordlimit} words will be used.`);
+        }
+        let confirmation = confirm("You are about to ask the AI:\n\n " + selectedText + "\n\nDo you want to proceed?");
+        if (!confirmation){
             return;
         }
         let response = await fetch('https://ai.hackclub.com/chat/completions',{

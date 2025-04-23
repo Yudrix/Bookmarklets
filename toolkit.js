@@ -3,7 +3,7 @@
     let fontLink = document.createElement('link');
     fontLink.href = 'https://fonts.googleapis.com/css2?family=Roboto:wght@400&display=swap';
     fontLink.rel = 'stylesheet';
-    document.head,appendChild(fontLink);
+    document.head.appendChild(fontLink);
 
     let menu = document.createElement('div');
     menu.innerHTML=`
@@ -55,7 +55,7 @@
     #menuclosebutton{
         background:red;
         color:white;
-        font-size:16px;
+        font-size:12px;
         font-weight:bold;
         width:30px;
         height:30px;
@@ -75,27 +75,51 @@
     <h1>
     Toolkit
     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSMsQKIOVtgGOXbpESHzwhMiMyQ9Dfnh0WT-g&s">
-    <.h1>   
+    <.h1> 
+    <button id="AI">Ask AI</button>  
     <button id="Darkmode">Invert mode</button>
-    <button id="menuclosebutton">X</button>
+    <button id="menuclosebutton">Close</button>
     </div>
      
         
 
     `;
     document.body.appendChild(menu);
+
     document.getElementById('menuclosebutton').onclick=function(){
         menu.remove(); };
+
+    document.getElementById('AI').onclick = async function(){
+        let selectedText = window.getSelection().toString().trim();
+        if (!selectedText) {
+            alert("Please select some text to ask the AI.");
+            return;
+        }
+        let response = await fetch('https://ai.hackclub.com/chat/completions',{
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                messages: [{ role: "user", content: selectedText}]
+            })
+        });
+        if (response.ok) {
+            let data = await response.json();
+            alert("Toolkit AI: " +(data.choices[0].message?.content || "No response received."));
+
+        } else{
+            alert("Error: Unable to connect to AI service. Please try again later.");
+        }
+    };
     document.getElementById('Darkmode').onclick=function(){
          
            
-        let all = document.getElementsByTagName('*');
-        for (let i = 0; i < all.length; i++)
-        {if(typeof all[i].style !== 'undefined'){all[i].style.filter = "invert(1)";}}
+        document.body.style.filter = "invert(1) hue-rotate(180deg)";
         
-        let elems = document.querySelectorAll("img,video,a");
+        let elems = document.querySelectorAll("img,video,a,iframe,svg,canvas,embed,object,source,track,link,style");
         for (let j = 0; j < elems.length; j++)
-        {if (elems[j].style){elems[j].style.filter = "invert(0)";}}
+        {if (elems[j].style){elems[j].style.filter = "invert(0) hue-rotate(0deg)";}}
         
     
 

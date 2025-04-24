@@ -16,7 +16,7 @@
         font-family:'Montserrat', sans-serif;
         right:20px;
         padding:20px;
-        background-color: #1c1c1e;
+        background-color: rgba(28, 28, 30, 0.9);
         border: 1px solid #ffe537;
         border-radius:20px;
         z-index:9999;
@@ -97,11 +97,12 @@
     Toolkit
     <img src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/9a0afe8d03290fbcd2c84c4d3ac04ab6ce8ac212_jslogo.png">
     </h1> 
-    <button id="AI">Ask AI</button>  
+    <button id="AI">Ask AI</button>
+    <button id="Editable_site">Edit the site!</button>
     <button id="Darkmode">Invert mode</button>
     <button id="menuclosebutton">Close</button>
     <p>Made with ❤️ by <a href="https://github.com/Yudrix/Bookmarklets" target="_blank" style="color:#ffe537; text-decoration:none;">Yudrix</a></p>
-    <p>ToolkitJS is a collection of bookmarklets to enhance your browsing experience. Without the risk of your privacy.</p>
+    <p>ToolkitJS is a collection of bookmarklets to enhance your browsing experience.</p>
     </div>
     
      
@@ -150,6 +151,13 @@
 
         } else{
             alert("Error: Unable to connect to AI service. Please try again later.");
+        }
+    };
+    document.getElementById('Editable_site').onclick=function(){
+        document.body.contentEditable = true;
+        let all_links = document.getElementsByTagName("a");
+        for(let i=0; i<all_links.length; i++){ alllinks[1].removeAttribute("href");
+            void 0;
         }
     };
     document.getElementById('Darkmode').onclick=function(){

@@ -8,28 +8,44 @@
     let menu = document.createElement('div');
     menu.innerHTML=`
     <style>
+
+    @font-face {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 400;
+        src: url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap') 
+        
+    }
+    
+    @font-face {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 700;
+        src: url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap')
+    }
    
     #bookmarkletmenu{
-        position:fixed;
-        top:20px;
-        display:flex;
-        font-family:'Montserrat', sans-serif;
-        right:20px;
-        padding:20px;
-        background-color: rgba(28, 28, 30, 0.9);
-        border: 1px solid #ffe537;
-        border-radius:20px;
-        z-index:9999;
-        flex-direction:column;
-        gap:15px;
-        box-shadow: 0px 8px 24px rgba(0,0,0,0.3);
-        animation: fadeIn 0.3 ease-in-out;
-        width:300px;
+        position:fixed !important;
+        top:20px !important;
+        display:flex !important;
+        font-family:'Montserrat', sans-serif !important;
+        right:20px !important;
+        padding:20px !important;
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        backdrop-filter: blur(10px) !important;
+        border-radius:20px !important;
+        z-index:9999 !important;
+        flex-direction:column !important;
+        gap:15px !important;
+        box-shadow: 0px 8px 24px rgba(0,0,0,0.3) !important;
+        animation: fadeIn 0.3s ease-in-out !important;
+        width:300px !important;
     }
     #bookmarkletmenu h1{
         display:flex;
         font-family:'Montserrat', sans-serif;
-        font-size 24px;
+        font-size: 24px;
         font-weight: 700;
         align-items:center;
         justify-content:center;
@@ -54,7 +70,7 @@
         font-weight:400;
         font-family:'Montserrat', sans-serif;
         border-radius:10px;
-        transition: background 0.3s ease, transform 0.2 ease;
+        transition: background 0.3s ease, transform 0.2s ease;
         
     
         }
@@ -95,10 +111,11 @@
     <div id="bookmarkletmenu">
     <h1>
     Toolkit
-    <img src="https://hc-cdn.hel1.your-objectstorage.com/s/v3/9a0afe8d03290fbcd2c84c4d3ac04ab6ce8ac212_jslogo.png">
+    <img src="https://raw.githubusercontent.com/Yudrix/Bookmarklets/main/jslogo.png">
     </h1> 
-    <button id="AI">Ask AI</button>
+    <button id="AI">Highlight to ask AI</button>
     <button id="Editable_site">Edit the site!</button>
+    <button id="Skip_Ad_Yt">Skip Ad</button>
     <button id="Darkmode">Invert mode</button>
     <button id="menuclosebutton">Close</button>
     <p>Made with ❤️ by <a href="https://github.com/Yudrix/Bookmarklets" target="_blank" style="color:#ffe537; text-decoration:none;">Yudrix</a></p>
@@ -116,12 +133,18 @@
     document.getElementById('menuclosebutton').style='';
 
     document.getElementById('AI').onclick = async function(){
+
+        if (window.location.hostname.includes("github.com")){
+            alert("This feature is not supported by GitHub for Content Security. Please try it on another site.");
+            return;
+        }
+
         let selectedText = window.getSelection().toString().trim();
         if (!selectedText) {
             alert("Please select some text to ask the AI.");
             return;
         }
-        let additionalText = prompt("Please provide any additional contextto your question:", "");
+        let additionalText = prompt("Please provide any additional context to your question:", "");
         if (additionalText){
             selectedText += " " + additionalText.trim();
         }
@@ -129,7 +152,7 @@
         const wordlimit = 500;
         let words = selectedText.split(/\s+/).length;
         if (words.length > wordlimit) {
-            selectedText = words.slice(0, wordLimit).join(" ");
+            selectedText = words.slice(0, wordlimit).join(" ");
             alert(`Input is too long. Only the first ${wordlimit} words will be used.`);
         }
         let confirmation = confirm("You are about to ask the AI:\n\n " + selectedText + "\n\nDo you want to proceed?");
@@ -156,10 +179,24 @@
     document.getElementById('Editable_site').onclick=function(){
         document.body.contentEditable = true;
         let all_links = document.getElementsByTagName("a");
-        for(let i=0; i<all_links.length; i++){ alllinks[1].removeAttribute("href");
+        for(let i=0; i<all_links.length; i++){ all_links[i].removeAttribute("href");
             void 0;
         }
     };
+
+    document.getElementById('Skip_Ad_Yt').onclick=function(){
+        if(document.getElementsByClassName("video-ads")[0].innerHTML !==""){
+            var banner = false;
+            for(var i = 0; i < document.getElementsByClassName("ytp-ad-overlay-close-button").length; i++)
+                { document.getElementsByClassName("ytp-ad-overlay-close-button")[i].click(); banner = true;}
+            if(banner === false){ document.getElementsByClassName("html5-main-video")[0].currentTime = document.getElementsByClassName("html5-main-video")[0].duration; document.getElementsByClassName("ytp-ad-skip-button")[0].click();}    
+        }
+        void 0;
+
+        
+
+    };
+
     document.getElementById('Darkmode').onclick=function(){
          
            

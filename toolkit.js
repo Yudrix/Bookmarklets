@@ -119,6 +119,7 @@
     <button id="Darkmode">Invert mode</button>
     <button id="menuclosebutton">Close</button>
     <p>Made with ❤️ by <a href="https://github.com/Yudrix/Bookmarklets" target="_blank" style="color:#ffe537; text-decoration:none;">Yudrix</a></p>
+    <p>&copy; 2025 Yudrix</p>
     <p>ToolkitJS is a collection of bookmarklets to enhance your browsing experience.</p>
     </div>
     

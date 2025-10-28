@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ToolkitJS - Quick Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 15px 30px;
+            margin: 10px 0;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            font-size: 16px;
+        }
+        .test-button:hover {
+            background: #764ba2;
+        }
+        .info-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        h1 { color: #667eea; }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 ToolkitJS Test Page</h1>
+    
+    <div class="info-box">
+        <h2>How to Test:</h2>
+        <ol>
+            <li>Click the button below to load the bookmarklet</li>
+            <li>The ToolkitJS menu should appear in the top-right corner</li>
+            <li>Test each feature using the sample content below</li>
+        </ol>
+    </div>
+
+    <button class="test-button" onclick="loadBookmarklet()">🚀 Load ToolkitJS</button>
+
+    <h2>Sample Content for Testing</h2>
+
+    <h3>For AI Testing:</h3>
+    <p><strong>Select this text:</strong> Artificial intelligence is transforming technology. 
+    What are the main applications of machine learning in healthcare?</p>
+
+    <h3>For Calculator:</h3>
+    <p>Try: <code>(100 + 50) * 2</code> or <code>Math.sqrt(144)</code></p>
+
+    <h3>For Text-to-Speech:</h3>
+    <p><strong>Select this:</strong> Hello! Welcome to ToolkitJS. This is a test of the text-to-speech feature.</p>
+
+    <h3>For Find & Replace:</h3>
+    <p>The word "test" appears multiple times. Try finding "test" and replacing with "example". 
+    This is a test sentence. Another test here. Final test!</p>
+
+    <h3>For QR Code:</h3>
+    <p>Try generating a QR code for: <code>https://github.com/Yudrix/Bookmarklets</code></p>
+
+    <h3>For Dark Mode:</h3>
+    <p>Click the "Dark Mode" button to see the color inversion in action!</p>
+
+    <script>
+        function loadBookmarklet() {
+            // Load the bookmarklet code
+            fetch('toolkit.js')
+                .then(response => response.text())
+                .then(code => {
+                    // Execute the bookmarklet code
+                    eval(code);
+                    console.log('✅ ToolkitJS loaded successfully!');
+                })
+                .catch(error => {
+                    console.error('❌ Error loading bookmarklet:', error);
+                    alert('Error loading bookmarklet. Please check the console.');
+                });
+        }
+
+        // Keyboard shortcut to load (Ctrl+Shift+T)
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.shiftKey && e.key === 'T') {
+                loadBookmarklet();
+            }
+        });
+
+        console.log('💡 Tip: Press Ctrl+Shift+T to load the bookmarklet');
+    </script>
+</body>
+</html>

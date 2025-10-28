@@ -246,8 +246,9 @@
     };
 
     document.getElementById('Skip_Ad_Yt').onclick=function(){
-        // Check if we're on YouTube
-        if (!window.location.hostname.includes('youtube.com')) {
+        // Check if we're on YouTube - use strict hostname check for security
+        const hostname = window.location.hostname;
+        if (hostname !== 'www.youtube.com' && hostname !== 'youtube.com' && hostname !== 'm.youtube.com') {
             alert('This feature only works on YouTube!');
             return;
         }

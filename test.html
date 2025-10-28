@@ -83,15 +83,35 @@
         function loadBookmarklet() {
             // Load the bookmarklet code
             fetch('toolkit.js')
-                .then(response => response.text())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Could not load toolkit.js. Make sure the file exists in the same directory as this test page.');
+                    }
+                    return response.text();
+                })
                 .then(code => {
-                    // Execute the bookmarklet code
-                    eval(code);
+                    // Execute the bookmarklet code safely using script element
+                    const script = document.createElement('script');
+                    script.textContent = code;
+                    document.body.appendChild(script);
                     console.log('✅ ToolkitJS loaded successfully!');
+                    
+                    // Show success message
+                    const successMsg = document.createElement('div');
+                    successMsg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#4CAF50;color:white;padding:15px 30px;border-radius:8px;z-index:10000;font-weight:bold;';
+                    successMsg.textContent = '✅ ToolkitJS loaded! Check the top-right corner.';
+                    document.body.appendChild(successMsg);
+                    setTimeout(() => successMsg.remove(), 3000);
                 })
                 .catch(error => {
                     console.error('❌ Error loading bookmarklet:', error);
-                    alert('Error loading bookmarklet. Please check the console.');
+                    
+                    // Show error message in UI instead of alert
+                    const errorMsg = document.createElement('div');
+                    errorMsg.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#f44336;color:white;padding:15px 30px;border-radius:8px;z-index:10000;max-width:80%;text-align:center;';
+                    errorMsg.innerHTML = '<strong>❌ Error loading bookmarklet</strong><br><small>' + error.message + '</small>';
+                    document.body.appendChild(errorMsg);
+                    setTimeout(() => errorMsg.remove(), 5000);
                 });
         }
 

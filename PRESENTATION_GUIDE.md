@@ -301,7 +301,7 @@ Metrics:
 ## 📊 Key Metrics to Mention
 
 ### Development:
-- Lines of code: ~440 (compact!)
+- Lines of code: ~437 (compact!)
 - Features: 9 core features
 - File size: <10KB (lightweight)
 - Development time: [Your time]

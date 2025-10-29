@@ -32,132 +32,307 @@ javascript:(function(){
         const GEMINI_API_KEY = "AIzaSyANqhEFzHD42F1b47NqQ0duooBWBz-SKuI"; 
         const GEMINI_MODEL = "gemini-2.5-flash"; // The fast, free-tier model
 
-        aiBtn.onclick = async function() {
-            if (window.location.hostname.includes("github.com")) return void alert("This feature is not supported by GitHub for Content Security. Please try it on another site.");
+        // Create AI input panel (hidden by default)
+        let aiPanel = document.createElement("div");
+        aiPanel.id = "ai-input-panel";
+        aiPanel.style.cssText = `
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            background: rgba(41, 41, 41, 0.95);
+            border-radius: 12px;
+            margin-top: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        `;
+
+        let highlightedTextDiv = document.createElement("div");
+        highlightedTextDiv.style.cssText = `
+            padding: 10px;
+            background: rgba(255, 229, 55, 0.1);
+            border-radius: 8px;
+            color: #ffe537;
+            font-size: 13px;
+            max-height: 100px;
+            overflow-y: auto;
+            word-wrap: break-word;
+        `;
+
+        let contextTextarea = document.createElement("textarea");
+        contextTextarea.placeholder = "Add context to your question (optional)...";
+        contextTextarea.style.cssText = `
+            width: 100%;
+            min-height: 60px;
+            max-height: 150px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 229, 55, 0.3);
+            border-radius: 8px;
+            color: #ffffff;
+            font-family: sans-serif;
+            font-size: 13px;
+            resize: vertical;
+            box-sizing: border-box;
+        `;
+
+        let sendBtn = document.createElement("button");
+        sendBtn.textContent = "✉ Ask our AI";
+        sendBtn.style.cssText = `
+            padding: 12px;
+            background: linear-gradient(135deg, #ffe537 0%, #ffd700 100%);
+            color: #292929;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        `;
+        sendBtn.onmouseover = () => sendBtn.style.transform = "scale(1.02)";
+        sendBtn.onmouseout = () => sendBtn.style.transform = "scale(1)";
+
+        aiPanel.appendChild(highlightedTextDiv);
+        aiPanel.appendChild(contextTextarea);
+        aiPanel.appendChild(sendBtn);
+        menu.insertBefore(aiPanel, editableBtn);
+
+        // AI Button Click Handler
+        aiBtn.onclick = function() {
+            if (window.location.hostname.includes("github.com")) {
+                return alert("This feature is not supported by GitHub for Content Security.");
+            }
             
             if (GEMINI_API_KEY === "PASTE_YOUR_GEMINI_API_KEY_HERE") {
-                return void alert("ERROR: You must replace 'PASTE_YOUR_GEMINI_API_KEY_HERE' with your actual Gemini API key.");
+                return alert("ERROR: You must add your Gemini API key.");
             }
 
-            let highlightedText = window.getSelection().toString().trim();
-            if (!highlightedText) return void alert("Please select some text to ask the AI.");
-            
-            let context = prompt("Please provide any additional context to your question (optional):", "");
-            let fullPrompt = highlightedText;
-            if (context) {
-                fullPrompt += " " + context.trim();
+            let selectedText = window.getSelection().toString().trim();
+            if (!selectedText) {
+                return alert("Please select some text to ask the AI.");
             }
+
+            // Toggle panel visibility
+            if (aiPanel.style.display === "none") {
+                aiPanel.style.display = "flex";
+                highlightedTextDiv.textContent = `"${selectedText}"`;
+                contextTextarea.value = "";
+                contextTextarea.focus();
+            } else {
+                aiPanel.style.display = "none";
+            }
+        };
+
+        // Send Button Handler
+        sendBtn.onclick = async function() {
+            let selectedText = highlightedTextDiv.textContent.slice(1, -1); // Remove quotes
+            let context = contextTextarea.value.trim();
+            let fullPrompt = selectedText + (context ? "\n\nContext: " + context : "");
 
             const MAX_WORDS = 500;
             let words = fullPrompt.split(/\s+/);
             if (words.length > MAX_WORDS) {
                 fullPrompt = words.slice(0, MAX_WORDS).join(" ");
-                alert(`Input is too long. Only the first ${MAX_WORDS} words will be used.`);
+                alert(`Input trimmed to ${MAX_WORDS} words.`);
             }
 
-            if (!confirm("You are about to ask the AI:\n\n" + fullPrompt + "\n\nDo you want to proceed?")) return;
+            // Hide input panel
+            aiPanel.style.display = "none";
+
+            // Show loading overlay
+            let loadingOverlay = document.createElement("div");
+            loadingOverlay.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+            `;
+            
+            let spinner = document.createElement("div");
+            spinner.style.cssText = `
+                width: 50px;
+                height: 50px;
+                border: 5px solid rgba(255, 229, 55, 0.3);
+                border-top: 5px solid #ffe537;
+                border-radius: 50%;
+                animation: spin 1s linear infinite;
+            `;
+            
+            let style = document.createElement("style");
+            style.textContent = "@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }";
+            document.head.appendChild(style);
+            
+            loadingOverlay.appendChild(spinner);
+            document.body.appendChild(loadingOverlay);
 
             try {
-                // Gemini API Endpoint - using the key directly in the URL for simplicity in a bookmarklet
                 const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
                 
                 let response = await fetch(API_URL, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        // The structure required by the Gemini API
                         contents: [{
                             role: "user",
-                            parts: [{
-                                text: fullPrompt
-                            }]
+                            parts: [{ text: fullPrompt }]
                         }]
                     })
                 });
+
+                loadingOverlay.remove();
 
                 if (response.ok) {
                     let data = await response.json();
                     let aiResponse = "No response received.";
                     
-                    // Safely extract the response text from the Gemini response structure
-                    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+                    if (data.candidates?.[0]?.content?.parts) {
                         aiResponse = data.candidates[0].content.parts[0].text;
                     }
 
-                    alert("Toolkit AI (Gemini): " + aiResponse);
+                    // Create draggable result window
+                    createResultWindow(aiResponse);
                 } else {
                     let errorText = await response.text();
-                    alert("Error: Unable to connect to AI service. Status: " + response.status + "\nDetails: " + errorText.substring(0, 150));
+                    alert("Error: " + response.status + "\n" + errorText.substring(0, 150));
                 }
             } catch (error) {
+                loadingOverlay.remove();
                 alert("Fetch Error: " + error.message);
             }
         };
 
-        // --- END: AI INTEGRATION ---
-        //end of my ai integration
+        // Create draggable result window
+        function createResultWindow(content) {
+            let resultWindow = document.createElement("div");
+            resultWindow.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 500px;
+                max-width: 90vw;
+                max-height: 70vh;
+                background: rgba(41, 41, 41, 0.98);
+                border: 1px solid rgba(255, 229, 55, 0.5);
+                border-radius: 16px;
+                box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+                z-index: 10001;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            `;
+
+            let header = document.createElement("div");
+            header.style.cssText = `
+                padding: 15px 20px;
+                background: linear-gradient(135deg, #ffe537 0%, #ffd700 100%);
+                color: #292929;
+                font-weight: 700;
+                cursor: move;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            `;
+            header.textContent = "✨ AI Response";
+
+            let closeX = document.createElement("span");
+            closeX.textContent = "✕";
+            closeX.style.cssText = `
+                cursor: pointer;
+                font-size: 20px;
+                font-weight: 400;
+            `;
+            closeX.onclick = () => resultWindow.remove();
+            header.appendChild(closeX);
+
+            let contentArea = document.createElement("div");
+            contentArea.style.cssText = `
+                padding: 20px;
+                color: #ffffff;
+                font-size: 14px;
+                line-height: 1.6;
+                overflow-y: auto;
+                flex: 1;
+            `;
+            contentArea.innerHTML = content.replace(/\n/g, "<br>").replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+            resultWindow.appendChild(header);
+            resultWindow.appendChild(contentArea);
+            document.body.appendChild(resultWindow);
+
+            // Make draggable
+            let isDragging = false, offsetX, offsetY;
+            header.onmousedown = (e) => {
+                isDragging = true;
+                offsetX = e.clientX - resultWindow.offsetLeft;
+                offsetY = e.clientY - resultWindow.offsetTop;
+                resultWindow.style.transform = "none";
+            };
+            document.onmousemove = (e) => {
+                if (isDragging) {
+                    resultWindow.style.left = (e.clientX - offsetX) + "px";
+                    resultWindow.style.top = (e.clientY - offsetY) + "px";
+                }
+            };
+            document.onmouseup = () => isDragging = false;
+        }
         
-//editable
+        // --- RESTORE OTHER BUTTON FUNCTIONALITY ---
+        
         editableBtn.onclick = function() {
-            document.body.contentEditable = !0;
+            document.body.contentEditable = true;
             let links = document.getElementsByTagName("a");
-            for (let t = 0; t < links.length; t++) links[t].removeAttribute("href")
+            for (let i = 0; i < links.length; i++) {
+                links[i].removeAttribute("href");
+            }
         };
-        
-//skip ad
+
         skipAdBtn.onclick = function() {
-            try {
-                let videoAds = document.getElementsByClassName("video-ads")[0];
-                if (videoAds && "" !== videoAds.innerHTML) {
-                    let clickedOverlay = !1,
-                        overlayCloseButtons = document.getElementsByClassName("ytp-ad-overlay-close-button");
-                    for (let n = 0; n < overlayCloseButtons.length; n++) overlayCloseButtons[n].click(), clickedOverlay = !0;
-                    if (!1 === clickedOverlay) {
-                        let mainVideo = document.getElementsByClassName("html5-main-video")[0];
-                        if (mainVideo) {
-                            mainVideo.currentTime = mainVideo.duration;
-                            let skipButton = document.getElementsByClassName("ytp-ad-skip-button")[0];
-                            skipButton && skipButton.click()
-                        }
+            // Close overlay ads
+            let overlays = document.querySelectorAll('.ytp-ad-overlay-close-button, .ytp-ad-skip-button-modern, .ytp-ad-skip-button');
+            overlays.forEach(btn => btn.click());
+            
+            // Fast forward video to end
+            let video = document.querySelector('video');
+            if (video) {
+                video.currentTime = video.duration;
+            }
+        };
+
+        darkModeBtn.onclick = function() {
+            // Check if dark mode is already applied
+            if (document.body.hasAttribute('data-toolkit-darkmode')) {
+                // Remove dark mode
+                document.body.removeAttribute('data-toolkit-darkmode');
+                document.body.style.filter = "";
+                
+                let elems = document.querySelectorAll("img,video,iframe,svg,canvas,embed,object");
+                for (let j = 0; j < elems.length; j++) {
+                    if (elems[j].style) {
+                        elems[j].style.filter = "";
                     }
                 }
-            } catch (error) {
-                console.log("Skip ad error: " + error.message)
+            } else {
+                // Apply dark mode
+                document.body.setAttribute('data-toolkit-darkmode', 'true');
+                document.body.style.filter = "invert(1) hue-rotate(180deg)";
+                
+                // Preserve images and videos in their original colors
+                let elems = document.querySelectorAll("img,video,iframe,svg,canvas,embed,object");
+                for (let j = 0; j < elems.length; j++) {
+                    if (elems[j].style) {
+                        elems[j].style.filter = "invert(1) hue-rotate(180deg)";
+                    }
+                }
             }
         };
 
-        // Darkmode
-
-         darkModeBtn.onclick=function(){
-        // Check if dark mode is already applied
-        if (document.body.hasAttribute('data-toolkit-darkmode')) {
-            // Remove dark mode
-            document.body.removeAttribute('data-toolkit-darkmode');
-            document.body.style.filter = "";
-            
-            let elems = document.querySelectorAll("img,video,iframe,svg,canvas,embed,object");
-            for (let j = 0; j < elems.length; j++) {
-                if (elems[j].style) {
-                    elems[j].style.filter = "";
-                }
-            }
-        } else {
-            // Apply dark mode
-            document.body.setAttribute('data-toolkit-darkmode', 'true');
-            document.body.style.filter = "invert(1) hue-rotate(180deg)";
-            
-            // Preserve images and videos in their original colors
-            let elems = document.querySelectorAll("img,video,iframe,svg,canvas,embed,object");
-            for (let j = 0; j < elems.length; j++) {
-                if (elems[j].style) {
-                    elems[j].style.filter = "invert(1) hue-rotate(180deg)";
-                }
-            }
-        }
-         };
-        } catch (e) {
+    } catch (e) {
         alert("Bookmarklet error: " + e.message)
-        }
+    }
 })();

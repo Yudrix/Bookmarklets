@@ -26,19 +26,17 @@ javascript:(function(){
 
         
         // AI highlight thingy
-       
+       // --- START: AI INTEGRATION WITH GEMINI API (FAST & STABLE FREE TIER) ---
 
-        // change later
-        const OPENROUTER_API_KEY = "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"; 
-        
-        // maybe
-        const OPENROUTER_MODEL = "minimax/minimax-m27x7-chat"; 
+        // !!! IMPORTANT: Paste your GEMINI API Key here (starts with 'AIza...')
+        const GEMINI_API_KEY = "AIzaSyANqhEFzHD42F1b47NqQ0duooBWBz-SKuI"; 
+        const GEMINI_MODEL = "gemini-2.5-flash"; // The fast, free-tier model
 
         aiBtn.onclick = async function() {
             if (window.location.hostname.includes("github.com")) return void alert("This feature is not supported by GitHub for Content Security. Please try it on another site.");
             
-            if (OPENROUTER_API_KEY === "PASTE_YOUR_SECRET_API_KEY_HERE") {
-                return void alert("ERROR: You must replace 'PASTE_YOUR_SECRET_API_KEY_HERE' with your actual OpenRouter API key.");
+            if (GEMINI_API_KEY === "PASTE_YOUR_GEMINI_API_KEY_HERE") {
+                return void alert("ERROR: You must replace 'PASTE_YOUR_GEMINI_API_KEY_HERE' with your actual Gemini API key.");
             }
 
             let highlightedText = window.getSelection().toString().trim();
@@ -60,36 +58,45 @@ javascript:(function(){
             if (!confirm("You are about to ask the AI:\n\n" + fullPrompt + "\n\nDo you want to proceed?")) return;
 
             try {
-                // OpenRouter API Endpoint
-                let response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                // Gemini API Endpoint - using the key directly in the URL for simplicity in a bookmarklet
+                const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+                
+                let response = await fetch(API_URL, {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                        "Authorization": `Bearer ${OPENROUTER_API_KEY}`
                     },
                     body: JSON.stringify({
-                        "model": OPENROUTER_MODEL,
-                        "messages": [{
-                            "role": "user",
-                            "content": fullPrompt
+                        // The structure required by the Gemini API
+                        contents: [{
+                            role: "user",
+                            parts: [{
+                                text: fullPrompt
+                            }]
                         }]
                     })
-            });
+                });
 
                 if (response.ok) {
                     let data = await response.json();
-                    let aiResponse = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : "No response received.";
-                    alert("Toolkit AI: " + aiResponse);
+                    let aiResponse = "No response received.";
+                    
+                    // Safely extract the response text from the Gemini response structure
+                    if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
+                        aiResponse = data.candidates[0].content.parts[0].text;
+                    }
+
+                    alert("Toolkit AI (Gemini): " + aiResponse);
                 } else {
                     let errorText = await response.text();
-                    alert("Error: Unable to connect to AI service. Status: " + response.status + "\nDetails: " + errorText.substring(0, 100));
+                    alert("Error: Unable to connect to AI service. Status: " + response.status + "\nDetails: " + errorText.substring(0, 150));
                 }
             } catch (error) {
-                alert("Error: " + error.message)
+                alert("Fetch Error: " + error.message);
             }
         };
 
-        
+        // --- END: AI INTEGRATION ---
         //end of my ai integration
         
 //editable

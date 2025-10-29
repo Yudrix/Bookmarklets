@@ -186,15 +186,25 @@
     };
 
     document.getElementById('Skip_Ad_Yt').onclick=function(){
-        if(document.getElementsByClassName("video-ads")[0].innerHTML !==""){
-            var banner = false;
-            for(var i = 0; i < document.getElementsByClassName("ytp-ad-overlay-close-button").length; i++)
-                { document.getElementsByClassName("ytp-ad-overlay-close-button")[i].click(); banner = true;}
-            if(banner === false){ document.getElementsByClassName("html5-main-video")[0].currentTime = document.getElementsByClassName("html5-main-video")[0].duration; document.getElementsByClassName("ytp-ad-skip-button")[0].click();}    
-        }
-        void 0;
-
-        
+        try {
+                let videoAds = document.getElementsByClassName("video-ads")[0];
+                if (videoAds && "" !== videoAds.innerHTML) {
+                    let clickedOverlay = !1,
+                        overlayCloseButtons = document.getElementsByClassName("ytp-ad-overlay-close-button");
+                    for (let n = 0; n < overlayCloseButtons.length; n++) overlayCloseButtons[n].click(), clickedOverlay = !0;
+                    if (!1 === clickedOverlay) {
+                        let mainVideo = document.getElementsByClassName("html5-main-video")[0];
+                        if (mainVideo) {
+                            mainVideo.currentTime = mainVideo.duration;
+                            let skipButton = document.getElementsByClassName("ytp-ad-skip-button")[0];
+                            skipButton && skipButton.click()
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log("Skip ad error: " + error.message)
+            }
+               
 
     };
 

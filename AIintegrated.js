@@ -18,10 +18,11 @@ javascript:(function(){
         skipAdBtn = createButton("Skip_Ad_Yt", "Skip Ad"),
         darkModeBtn = createButton("Darkmode", "Invert mode"),
         mathSolverBtn = createButton("Math_Solver", "Math Solver"),
+        notesBtn = createButton("Notes", "My Notes"),
         closeBtn = createButton("menuclosebutton", "Close");
         closeBtn.style.background = "#ff3b30", closeBtn.style.color = "white", closeBtn.style.width = "80px", closeBtn.style.margin = "0 auto";
         let footer = document.createElement("p");
-        footer.style.fontSize = "12px", footer.style.textAlign = "center", footer.textContent = "Made with ❤️ by Yudrix", menu.appendChild(title), menu.appendChild(aiBtn), menu.appendChild(editableBtn), menu.appendChild(skipAdBtn), menu.appendChild(darkModeBtn), menu.appendChild(mathSolverBtn), menu.appendChild(closeBtn), menu.appendChild(footer), document.body.appendChild(menu), closeBtn.onclick = function() {
+        footer.style.fontSize = "12px", footer.style.textAlign = "center", footer.textContent = "Made with ❤️ by Yudrix", menu.appendChild(title), menu.appendChild(aiBtn), menu.appendChild(editableBtn), menu.appendChild(skipAdBtn), menu.appendChild(darkModeBtn), menu.appendChild(mathSolverBtn), menu.appendChild(notesBtn), menu.appendChild(closeBtn), menu.appendChild(footer), document.body.appendChild(menu), closeBtn.onclick = function() {
             menu.remove()
         };
 
@@ -692,6 +693,421 @@ javascript:(function(){
                 }
             };
             document.onmouseup = () => isDragging = false;
+        }
+
+        // --- NOTES FEATURE WITH LOCAL STORAGE ---
+        
+        notesBtn.onclick = function() {
+            createNotesWindow();
+        };
+
+        function createNotesWindow() {
+            // Check if notes window already exists
+            if (document.getElementById('notes-window')) {
+                return;
+            }
+
+            let notesWindow = document.createElement("div");
+            notesWindow.id = "notes-window";
+            notesWindow.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 700px;
+                max-width: 90vw;
+                max-height: 85vh;
+                background: rgba(41, 41, 41, 0.98);
+                border: 1px solid rgba(255, 229, 55, 0.5);
+                border-radius: 16px;
+                box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+                z-index: 10005;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            `;
+
+            let header = document.createElement("div");
+            header.style.cssText = `
+                padding: 15px 20px;
+                background: linear-gradient(135deg, #ffe537 0%, #ffd700 100%);
+                color: #292929;
+                font-weight: 700;
+                cursor: move;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            `;
+            header.textContent = "📝 My Notes";
+
+            let closeX = document.createElement("span");
+            closeX.textContent = "✕";
+            closeX.style.cssText = `
+                cursor: pointer;
+                font-size: 20px;
+                font-weight: 400;
+            `;
+            closeX.onclick = () => notesWindow.remove();
+            header.appendChild(closeX);
+
+            // Content container with two panels
+            let contentContainer = document.createElement("div");
+            contentContainer.style.cssText = `
+                display: flex;
+                flex: 1;
+                overflow: hidden;
+            `;
+
+            // Left panel - Notes list
+            let notesList = document.createElement("div");
+            notesList.id = "notes-list";
+            notesList.style.cssText = `
+                width: 250px;
+                background: rgba(0, 0, 0, 0.3);
+                border-right: 1px solid rgba(255, 229, 55, 0.3);
+                overflow-y: auto;
+                padding: 15px;
+            `;
+
+            let newNoteBtn = document.createElement("button");
+            newNoteBtn.textContent = "+ New Note";
+            newNoteBtn.style.cssText = `
+                width: 100%;
+                padding: 12px;
+                background: linear-gradient(135deg, #ffe537 0%, #ffd700 100%);
+                color: #292929;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                margin-bottom: 15px;
+                font-size: 14px;
+                transition: all 0.2s ease;
+            `;
+            newNoteBtn.onmouseover = () => newNoteBtn.style.transform = "scale(1.02)";
+            newNoteBtn.onmouseout = () => newNoteBtn.style.transform = "scale(1)";
+            newNoteBtn.onclick = () => createNewNote();
+
+            let notesListContainer = document.createElement("div");
+            notesListContainer.id = "notes-items";
+
+            notesList.appendChild(newNoteBtn);
+            notesList.appendChild(notesListContainer);
+
+            // Right panel - Note editor
+            let noteEditor = document.createElement("div");
+            noteEditor.id = "note-editor";
+            noteEditor.style.cssText = `
+                flex: 1;
+                padding: 25px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 15px;
+            `;
+
+            let editorPlaceholder = document.createElement("div");
+            editorPlaceholder.textContent = "Select a note or create a new one";
+            editorPlaceholder.style.cssText = `
+                color: rgba(255, 255, 255, 0.4);
+                text-align: center;
+                margin-top: 50px;
+                font-size: 16px;
+            `;
+            noteEditor.appendChild(editorPlaceholder);
+
+            contentContainer.appendChild(notesList);
+            contentContainer.appendChild(noteEditor);
+
+            notesWindow.appendChild(header);
+            notesWindow.appendChild(contentContainer);
+            document.body.appendChild(notesWindow);
+
+            // Load saved notes
+            loadNotesList();
+
+            // Make draggable
+            let isDragging = false, offsetX, offsetY;
+            header.onmousedown = (e) => {
+                isDragging = true;
+                offsetX = e.clientX - notesWindow.offsetLeft;
+                offsetY = e.clientY - notesWindow.offsetTop;
+                notesWindow.style.transform = "none";
+            };
+            document.onmousemove = (e) => {
+                if (isDragging) {
+                    notesWindow.style.left = (e.clientX - offsetX) + "px";
+                    notesWindow.style.top = (e.clientY - offsetY) + "px";
+                }
+            };
+            document.onmouseup = () => isDragging = false;
+        }
+
+        function createNewNote() {
+            let noteId = "note_" + Date.now();
+            let newNote = {
+                id: noteId,
+                heading: "Untitled Note",
+                subheading: "",
+                content: "",
+                created: new Date().toISOString()
+            };
+
+            saveNote(newNote);
+            loadNotesList();
+            openNoteEditor(noteId);
+        }
+
+        function loadNotesList() {
+            let notesContainer = document.getElementById("notes-items");
+            if (!notesContainer) return;
+
+            notesContainer.innerHTML = "";
+            let notes = getAllNotes();
+
+            if (notes.length === 0) {
+                let emptyMsg = document.createElement("div");
+                emptyMsg.textContent = "No notes yet";
+                emptyMsg.style.cssText = `
+                    color: rgba(255, 255, 255, 0.3);
+                    text-align: center;
+                    margin-top: 20px;
+                    font-size: 13px;
+                `;
+                notesContainer.appendChild(emptyMsg);
+                return;
+            }
+
+            notes.forEach(note => {
+                let noteItem = document.createElement("div");
+                noteItem.style.cssText = `
+                    padding: 12px;
+                    background: rgba(255, 255, 255, 0.05);
+                    border-radius: 8px;
+                    margin-bottom: 10px;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                    border: 1px solid transparent;
+                `;
+                noteItem.onmouseover = () => {
+                    noteItem.style.background = "rgba(255, 229, 55, 0.1)";
+                    noteItem.style.borderColor = "rgba(255, 229, 55, 0.3)";
+                };
+                noteItem.onmouseout = () => {
+                    noteItem.style.background = "rgba(255, 255, 255, 0.05)";
+                    noteItem.style.borderColor = "transparent";
+                };
+                noteItem.onclick = () => openNoteEditor(note.id);
+
+                let noteTitle = document.createElement("div");
+                noteTitle.textContent = note.heading || "Untitled";
+                noteTitle.style.cssText = `
+                    color: #ffe537;
+                    font-weight: 600;
+                    font-size: 14px;
+                    margin-bottom: 5px;
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                `;
+
+                let noteDate = document.createElement("div");
+                noteDate.textContent = new Date(note.created).toLocaleDateString();
+                noteDate.style.cssText = `
+                    color: rgba(255, 255, 255, 0.5);
+                    font-size: 11px;
+                `;
+
+                noteItem.appendChild(noteTitle);
+                noteItem.appendChild(noteDate);
+                notesContainer.appendChild(noteItem);
+            });
+        }
+
+        function openNoteEditor(noteId) {
+            let noteEditor = document.getElementById("note-editor");
+            if (!noteEditor) return;
+
+            let note = getNote(noteId);
+            if (!note) return;
+
+            noteEditor.innerHTML = "";
+
+            // Heading input
+            let headingInput = document.createElement("input");
+            headingInput.type = "text";
+            headingInput.placeholder = "Note Title";
+            headingInput.value = note.heading;
+            headingInput.style.cssText = `
+                width: 100%;
+                padding: 12px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 229, 55, 0.3);
+                border-radius: 8px;
+                color: #ffe537;
+                font-size: 22px;
+                font-weight: 700;
+                box-sizing: border-box;
+            `;
+
+            // Subheading input
+            let subheadingInput = document.createElement("input");
+            subheadingInput.type = "text";
+            subheadingInput.placeholder = "Subtitle (optional)";
+            subheadingInput.value = note.subheading;
+            subheadingInput.style.cssText = `
+                width: 100%;
+                padding: 10px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 229, 55, 0.2);
+                border-radius: 8px;
+                color: rgba(255, 255, 255, 0.8);
+                font-size: 16px;
+                font-weight: 500;
+                box-sizing: border-box;
+            `;
+
+            // Content textarea
+            let contentTextarea = document.createElement("textarea");
+            contentTextarea.placeholder = "Start writing your note...";
+            contentTextarea.value = note.content;
+            contentTextarea.style.cssText = `
+                width: 100%;
+                flex: 1;
+                padding: 15px;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 229, 55, 0.2);
+                border-radius: 8px;
+                color: #ffffff;
+                font-size: 14px;
+                line-height: 1.8;
+                resize: none;
+                box-sizing: border-box;
+                font-family: sans-serif;
+            `;
+
+            // Action buttons
+            let actionsDiv = document.createElement("div");
+            actionsDiv.style.cssText = `
+                display: flex;
+                gap: 10px;
+                margin-top: 10px;
+            `;
+
+            let saveBtn = document.createElement("button");
+            saveBtn.textContent = "💾 Save";
+            saveBtn.style.cssText = `
+                flex: 1;
+                padding: 12px;
+                background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 14px;
+            `;
+            saveBtn.onclick = () => {
+                note.heading = headingInput.value || "Untitled Note";
+                note.subheading = subheadingInput.value;
+                note.content = contentTextarea.value;
+                saveNote(note);
+                loadNotesList();
+                alert("✓ Note saved!");
+            };
+
+            let downloadBtn = document.createElement("button");
+            downloadBtn.textContent = "⬇ Download";
+            downloadBtn.style.cssText = `
+                flex: 1;
+                padding: 12px;
+                background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 14px;
+            `;
+            downloadBtn.onclick = () => downloadNote(note);
+
+            let deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "🗑 Delete";
+            deleteBtn.style.cssText = `
+                flex: 1;
+                padding: 12px;
+                background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+                color: white;
+                border: none;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                font-size: 14px;
+            `;
+            deleteBtn.onclick = () => {
+                if (confirm("Are you sure you want to delete this note?")) {
+                    deleteNote(noteId);
+                    loadNotesList();
+                    noteEditor.innerHTML = "<div style='color: rgba(255, 255, 255, 0.4); text-align: center; margin-top: 50px;'>Note deleted</div>";
+                }
+            };
+
+            actionsDiv.appendChild(saveBtn);
+            actionsDiv.appendChild(downloadBtn);
+            actionsDiv.appendChild(deleteBtn);
+
+            noteEditor.appendChild(headingInput);
+            noteEditor.appendChild(subheadingInput);
+            noteEditor.appendChild(contentTextarea);
+            noteEditor.appendChild(actionsDiv);
+        }
+
+        // Local Storage Functions
+        function saveNote(note) {
+            let notes = getAllNotes();
+            let existingIndex = notes.findIndex(n => n.id === note.id);
+            
+            if (existingIndex >= 0) {
+                notes[existingIndex] = note;
+            } else {
+                notes.push(note);
+            }
+            
+            localStorage.setItem("toolkit_notes", JSON.stringify(notes));
+        }
+
+        function getNote(noteId) {
+            let notes = getAllNotes();
+            return notes.find(n => n.id === noteId);
+        }
+
+        function getAllNotes() {
+            let stored = localStorage.getItem("toolkit_notes");
+            return stored ? JSON.parse(stored) : [];
+        }
+
+        function deleteNote(noteId) {
+            let notes = getAllNotes();
+            notes = notes.filter(n => n.id !== noteId);
+            localStorage.setItem("toolkit_notes", JSON.stringify(notes));
+        }
+
+        function downloadNote(note) {
+            let content = `${note.heading}\n`;
+            if (note.subheading) {
+                content += `${note.subheading}\n`;
+            }
+            content += `\n${note.content}`;
+
+            let blob = new Blob([content], { type: "text/plain" });
+            let url = URL.createObjectURL(blob);
+            let a = document.createElement("a");
+            a.href = url;
+            a.download = (note.heading || "note") + ".txt";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
 
     } catch (e) {
